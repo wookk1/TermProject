@@ -50,6 +50,8 @@ unsigned __stdcall ClientThreadProc(void* arg)
 
     DWORD lastTick = GetTickCount();
 
+
+    
     while (g_running) {
         DWORD now = GetTickCount();
         float dt = (now - lastTick) / 1000.0f;
@@ -73,8 +75,12 @@ unsigned __stdcall ClientThreadProc(void* arg)
     return 0;
 }
 
+
+
 int main(void)
 {
+
+    // 서버 시작
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
         printf("WSAStartup failed.\n");
@@ -83,9 +89,11 @@ int main(void)
 
     InitGameState(&g_state);
 
+    // socket()
     SOCKET listenSock = socket(AF_INET, SOCK_STREAM, 0);
     if (listenSock == INVALID_SOCKET) err_quit("socket()");
 
+    // bind()
     SOCKADDR_IN serveraddr;
     ZeroMemory(&serveraddr, sizeof(serveraddr));
     serveraddr.sin_family = AF_INET;
@@ -95,11 +103,14 @@ int main(void)
     if (bind(listenSock, (SOCKADDR*)&serveraddr, sizeof(serveraddr)) == SOCKET_ERROR)
         err_quit("bind()");
 
+    // listen()
     if (listen(listenSock, SOMAXCONN) == SOCKET_ERROR)
         err_quit("listen()");
 
     printf("Server listening on port 9000...\n");
 
+
+    
     while (g_running) {
         SOCKADDR_IN clientaddr;
         int addrlen = sizeof(clientaddr);
@@ -109,6 +120,7 @@ int main(void)
             continue;
         }
 
+        // 새로운 스레드가 생성도어 ClientTHreadProc 실행, 인자로 clinetsock 전달 
         HANDLE hThread = (HANDLE)_beginthreadex(
             NULL, 0, ClientThreadProc, (void*)clientSock, 0, NULL);
         CloseHandle(hThread);

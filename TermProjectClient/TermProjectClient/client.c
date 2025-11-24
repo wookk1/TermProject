@@ -15,8 +15,8 @@
 HWND   g_hWnd = NULL;
 SOCKET g_serverSock = INVALID_SOCKET;
 HANDLE g_hRecvThread = NULL;
-volatile int g_netRunning = 0;
-GameState g_state;   // 서버에서 받은 상태
+volatile int g_netRunning = 0;  // 스레드 루프 제어
+GameState g_state;   // 서버에서 받은 상태(게임 전체 상태를 담는 버퍼)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 unsigned __stdcall RecvThreadProc(void* arg);
@@ -29,6 +29,7 @@ int ConnectToServer(const char* ip, unsigned short port)
         return 0;
     }
 
+    // socket()
     g_serverSock = socket(AF_INET, SOCK_STREAM, 0);
     if (g_serverSock == INVALID_SOCKET) {
         MessageBoxW(NULL, L"socket() 실패", L"Error", MB_OK);
