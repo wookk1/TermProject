@@ -34,8 +34,7 @@
               "RelativeToolTip": "TermProjectClient\\game_logic.c",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAWAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000423|",
-              "WhenOpened": "2025-11-19T10:58:10.612Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T10:58:10.612Z"
             },
             {
               "$type": "Document",
@@ -47,8 +46,7 @@
               "RelativeToolTip": "TermProjectClient\\game_shared.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAB4AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-11-19T10:52:59.871Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T10:52:59.871Z"
             },
             {
               "$type": "Document",
@@ -56,8 +54,8 @@
               "Title": "client.c",
               "DocumentMoniker": "C:\\TeamProject\\TermProject\\TermProjectClient\\TermProjectClient\\client.c",
               "RelativeDocumentMoniker": "TermProjectClient\\client.c",
-              "ToolTip": "C:\\TeamProject\\TermProject\\TermProjectClient\\TermProjectClient\\client.c*",
-              "RelativeToolTip": "TermProjectClient\\client.c*",
+              "ToolTip": "C:\\TeamProject\\TermProject\\TermProjectClient\\TermProjectClient\\client.c",
+              "RelativeToolTip": "TermProjectClient\\client.c",
               "ViewState": "AgIAAFcAAAAAAAAAAAAAAHEAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000423|",
               "WhenOpened": "2025-11-19T10:40:02.065Z",
