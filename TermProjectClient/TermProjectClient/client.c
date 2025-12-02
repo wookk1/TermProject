@@ -21,6 +21,31 @@ GameState g_state;   // 서버에서 받은 상태(게임 전체 상태를 담는 버퍼)
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 unsigned __stdcall RecvThreadProc(void* arg);
 
+
+// 클라이언트 → 서버 : 유닛 배치 send()
+void SendPlaceUnit(int unitKind, int row, int col)
+{
+    CL_PLACE_UNIT pkt;
+    pkt.header.Type = 1; // 클라이언트 입력
+    pkt.header.Size = sizeof(CL_PLACE_UNIT) - sizeof(PACKET_HEADER);
+    pkt.unitKind = unitKind;
+    pkt.row = row;
+    pkt.col = col;
+
+    int toSend = sizeof(pkt);
+    char* buf = (char*)&pkt;
+    int sent = 0;
+
+    while (sent < toSend) {
+        int ret = send(g_serverSock, buf + sent, toSend - sent, 0);
+        if (ret <= 0) {
+            MessageBoxW(NULL, L"Send 실패", L"Error", MB_OK);
+            return;
+        }
+        sent += ret;
+    }
+}
+
 int ConnectToServer(const char* ip, unsigned short port)
 {
     WSADATA wsa;
@@ -115,6 +140,26 @@ void RenderStateText(HDC hdc)
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg) {
+    // 지금은 무조건 1번 식물만 배치 요청을 보내는 테스트
+    // 나중에 카드 선택/유닛 선택 UI랑 연결해야함
+    case WM_LBUTTONDOWN:
+    {
+        int x = LOWORD(lParam);
+        int y = HIWORD(lParam);
+
+        // 임시로 1번 식물 배치
+        int unitKind = 1;
+
+        // 게임 좌표 기준 보정 (지금은 예시값)
+        int col = (x - 250) / 80;
+        int row = (y - 80) / 100;
+
+        if (row >= 0 && row < 5 && col >= 0 && col < 10) {
+            SendPlaceUnit(unitKind, row, col);
+        }
+        return 0;
+    }
+
     case WM_PAINT:
     {
         PAINTSTRUCT ps;

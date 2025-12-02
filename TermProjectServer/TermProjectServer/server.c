@@ -15,6 +15,8 @@
 static GameState g_state;
 static int g_running = 1;
 
+static CRITICAL_SECTION g_cs; // GameState 동기화용
+
 unsigned __stdcall ClientThreadProc(void* arg);
 
 void err_quit(const char* msg)
@@ -48,27 +50,65 @@ unsigned __stdcall ClientThreadProc(void* arg)
     SOCKET cs = (SOCKET)arg;
     printf("Client connected.\n");
 
+    // ? Windows 논블로킹 설정
+    u_long mode = 1;
+    ioctlsocket(cs, FIONBIO, &mode);
+
     DWORD lastTick = GetTickCount();
 
-
-    
     while (g_running) {
+
+        //------------------------------------------------------------------
+        // ? 1단계: 클라이언트 → 서버 입력 수신
+        //------------------------------------------------------------------
+        CL_PLACE_UNIT inPkt;
+        int ret = recv(cs, (char*)&inPkt, sizeof(inPkt), 0);
+
+        if (ret > 0 && inPkt.header.Type == 1) {
+            EnterCriticalSection(&g_cs);
+
+            int row = inPkt.row;
+            int col = inPkt.col;
+            int kind = inPkt.unitKind;
+
+            printf("Place Unit Request: kind=%d row=%d col=%d\n", kind, row, col);
+
+            int idx = row * 10 + col;
+            if (idx >= 0 && idx < MAX_PLANTS) {
+                g_state.plants[idx].kind = kind;
+                g_state.plants[idx].hp = 100;
+                g_state.plants[idx].atk = 10;
+                g_state.plants[idx].tu = 1;
+            }
+
+            LeaveCriticalSection(&g_cs);
+        }
+
+        //------------------------------------------------------------------
+        // ? 2단계: 게임 로직 갱신
+        //------------------------------------------------------------------
         DWORD now = GetTickCount();
         float dt = (now - lastTick) / 1000.0f;
-        if (dt < 0.05f) {
-            Sleep(10);
-            continue;
+
+        if (dt >= 0.05f) {
+            lastTick = now;
+            EnterCriticalSection(&g_cs);
+            UpdateGameState(&g_state, dt);
+            LeaveCriticalSection(&g_cs);
         }
-        lastTick = now;
 
-        // 게임 상태 업데이트 (지금은 timeSec만 증가)
-        UpdateGameState(&g_state, dt);
-
-        // 상태 전송
+        //------------------------------------------------------------------
+        // ? 3단계: 서버 → 클라 상태 전송
+        //------------------------------------------------------------------
+        EnterCriticalSection(&g_cs);
         if (!SendGameState(cs)) {
+            LeaveCriticalSection(&g_cs);
             printf("Client disconnected.\n");
             break;
         }
+        LeaveCriticalSection(&g_cs);
+
+        Sleep(1);
     }
 
     closesocket(cs);
@@ -79,7 +119,7 @@ unsigned __stdcall ClientThreadProc(void* arg)
 
 int main(void)
 {
-
+    InitializeCriticalSection(&g_cs);
     // 서버 시작
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
@@ -87,7 +127,7 @@ int main(void)
         return 1;
     }
 
-    InitGameState(&g_state);
+    
 
     // socket()
     SOCKET listenSock = socket(AF_INET, SOCK_STREAM, 0);
@@ -128,5 +168,6 @@ int main(void)
 
     closesocket(listenSock);
     WSACleanup();
+    DeleteCriticalSection(&g_cs);
     return 0;
 }
